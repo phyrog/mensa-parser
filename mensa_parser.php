@@ -10,6 +10,12 @@
     return preg_replace('/\s+/', ' ', trim($str));
   }
 
+  function zip_lists($list1, $list2) {
+    array_map(function($key, $val) {
+      return array($key, $val);
+    }, array_combine($list1, $list2));
+  };
+
   /**
    * Joins the texts of the given objects with a delimiter
   **/
@@ -25,28 +31,39 @@
     return $res;
   }
   
-  function parse_mensa($uri) {
+  function parse_mensa($uri, $day = null) {
     phpQuery::newDocument(file_get_contents($uri));
 
-    $date = strtotime(pq(".tab-date:first")->text());
-
-    $categories = phpQuery::map(pq(".food-plan:first .food-category"), function($category) {
-      // Find name of the category
-      $name = squish_string(pq($category)->find("thead .category-name")->text());
-
-      // Find description of dishes
-      $descr = pq($category)->find("tbody .field-name-field-description");
-
-      // Remove annotation numbers
-      $descr->children()->remove("sup");
-
-      // Join, if multiple dishes are available in the same category
-      $description = squish_string(join_by($descr, ", "));
-
-      return array(array("name" => $name, "meal" => $description));
+    $dates = phpQuery::map(pq(".tab-date"), function($date) {
+      return strtotime(pq($date)->text());
     });
 
-    return array("dishes" => $categories, "date" => $date);
+    $days = phpQuery::map(pq(".food-plan"), function($day) {
+      return array(phpQuery::map(pq($day)->find(".food-category"), function($category) {
+        // Find name of the category
+        $name = squish_string(pq($category)->find("thead .category-name")->text());
+
+        // Find description of dishes
+        $descr = pq($category)->find("tbody .field-name-field-description");
+
+        // Remove annotation numbers
+        $descr->children()->remove("sup");
+
+        // Join, if multiple dishes are available in the same category
+        $description = squish_string(join_by($descr, ", "));
+
+        return array(array("name" => $name, "meal" => $description));
+      }));
+    });
+
+    $menu = array_combine($dates, $days);
+
+    if(is_null($day)) {
+      return $menu;
+    }
+    else {
+      return array("dishes" => $menu[$day], "date" => $day);
+    }
   }
 
 ?>
