@@ -11,9 +11,9 @@
   }
 
   function zip_lists($list1, $list2) {
-    array_map(function($key, $val) {
+    return array_map(function($key, $val) {
       return array($key, $val);
-    }, array_combine($list1, $list2));
+    }, $list1, $list2);
   };
 
   /**
@@ -62,7 +62,12 @@
       return $menu;
     }
     else {
-      return array("dishes" => $menu[$day], "date" => $day);
+      $_menus = zip_lists(array_keys($menu), $menu);
+      $menu_on_or_after_day = array_filter($_menus, function($elem) use ($day) {
+        return $elem[0] >= $day;
+      });
+      $f = reset($menu_on_or_after_day);
+      return array("dishes" => $f[1], "date" => $f[0]);
     }
   }
 
