@@ -10,6 +10,13 @@
     return preg_replace('/\s+/', ' ', trim($str));
   }
 
+  function parse_date($str) {
+    setlocale(LC_TIME, "de_DE.utf8");
+    $date = strptime($str, "%d. %b");
+    $date["tm_year"] = $date["tm_mon"] >= @date("m", time()) ? @date("Y", time()) : @date("Y", time()) + 1;
+    return @mktime(0, 0, 0, $date["tm_mon"]+1, $date["tm_mday"], $date["tm_year"]);
+  }
+
   function zip_lists($list1, $list2) {
     return array_map(function($key, $val) {
       return array($key, $val);
@@ -35,7 +42,7 @@
     phpQuery::newDocument(file_get_contents($uri));
 
     $dates = phpQuery::map(pq(".tab-date"), function($date) {
-      return strtotime(pq($date)->text());
+      return parse_date(pq($date)->text());
     });
 
     $days = phpQuery::map(pq(".food-plan"), function($day) {
