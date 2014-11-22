@@ -13,7 +13,9 @@
   function parse_date($str) {
     setlocale(LC_TIME, "de_DE.utf8");
     $date = strptime($str, "%d. %b");
-    $date["tm_year"] = $date["tm_mon"] >= @date("m", time()) ? @date("Y", time()) : @date("Y", time()) + 1;
+    $date["tm_year"] = date("Y");
+    if($date["tm_mon"]+1 < date("m"))
+      $date["tm_year"]++;
     return @mktime(0, 0, 0, $date["tm_mon"]+1, $date["tm_mday"], $date["tm_year"]);
   }
 
@@ -37,7 +39,7 @@
 
     return $res;
   }
-  
+
   function parse_mensa($uri, $day = null) {
     phpQuery::newDocument(file_get_contents($uri));
 
