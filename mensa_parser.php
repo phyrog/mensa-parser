@@ -40,7 +40,7 @@
     return $res;
   }
 
-  function parse_mensa($uri, $day = null) {
+  function parse_menu($uri) {
     phpQuery::newDocument(file_get_contents($uri));
 
     $dates = phpQuery::map(pq(".tab-date"), function($date) {
@@ -65,7 +65,12 @@
       }));
     });
 
-    $menu = array_combine($dates, $days);
+    return array_combine($dates, $days);
+  }
+
+  function parse_mensa($uri, $day = null) {
+
+    $menu = parse_menu($uri);
 
     if(is_null($day)) {
       return $menu;
