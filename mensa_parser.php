@@ -33,7 +33,7 @@
     $res = "";
 
     foreach($objs as $o) {
-      $res = $res . pq($o)->text() . $delim;
+      $res = $res . $o . $delim;
     }
     $res = substr($res, 0, strlen($res) - strlen($delim));
 
@@ -58,19 +58,29 @@
         // Remove annotation numbers
         $descr->children()->remove("sup");
 
-        // Join, if multiple dishes are available in the same category
-        $description = squish_string(join_by($descr, ", "));
+        $description = phpQuery::map($descr, function($meal) {
+          return squish_string(pq($meal)->text());
+        });
 
-        return array(array("name" => $name, "meal" => $description));
+        return array(array("name" => $name, "meals" => $description));
       }));
     });
 
     return array_combine($dates, $days);
   }
 
+  function join_dishes($menu) {
+    return array_map(function($day) {
+      return array_map(function($category) {
+        return array("name" => $category["name"],
+                     "meal" => join_by($category["meals"], ", "));
+      }, $day);
+    }, $menu);
+  }
+
   function parse_mensa($uri, $day = null) {
 
-    $menu = parse_menu($uri);
+    $menu = join_dishes(parse_menu($uri));
 
     if(is_null($day)) {
       return $menu;
